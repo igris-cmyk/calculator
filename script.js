@@ -1,27 +1,61 @@
-let input = document.getElementById('inputBox');
-let buttons = document.querySelectorAll('button');
+const parentDiv = document.querySelector("#calculator");
+const btnSound = new Audio("btnsound.mp3");
+const result = document.getElementById("inputBox");
+let data = "";
+btnSound.playbackRate = 3.69;
 
-let string = "";
-let arr = Array.from(buttons);
-arr.forEach(button => {
-    button.addEventListener('click', (e) =>{
-        if(e.target.innerHTML == '='){
-            string = eval(string);
-            input.value = string;
-        }
+function evaluateExpression(expression) {
+  try {
+    expression = expression.replace(/%/g, "/100");
+    return eval(expression);
+  } catch (error) {
+    return "Error";
+  }
+}
 
-        else if(e.target.innerHTML == 'AC'){
-            string = "";
-            input.value = string;
-        }
-        else if(e.target.innerHTML == 'DEL'){
-            string = string.substring(0, string.length-1);
-            input.value = string;
-        }
-        else{
-            string += e.target.innerHTML;
-            input.value = string;
-        }
-        
-    })
-})
+parentDiv.addEventListener("click", (e) => {
+  let val = e.target.textContent;
+  btnSound.play();
+
+  if (val.length > 3) return;
+
+  if (val === "ac") {
+    data = "";
+    result.value = "0";
+    return;
+  }
+
+  if (val === "del") {
+    data = data.slice(0, -1);
+    result.value = data || "0";
+    return;
+  }
+
+  if (val === "=") {
+    if (/[\+\-\*\/%]$/.test(data)) {
+      data = data.slice(0, -1);
+    }
+    let resultValue = evaluateExpression(data);
+    result.value = resultValue === "Error" ? "Error" : resultValue;
+    data = result.value;
+    return;
+  }
+
+  if (val === "%") {
+    if (data) {
+      data = (parseFloat(data) / 100).toString();
+      result.value = data;
+    }
+    return;
+  }
+
+  const lastChar = data[data.length - 1];
+  const operators = ["+", "-", "*", "/", "%"];
+
+  if (operators.includes(val) && operators.includes(lastChar)) return;
+
+  if (val === "." && data.includes(".")) return;
+
+  data += val;
+  result.value = data;
+});
